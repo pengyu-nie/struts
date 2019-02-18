@@ -42,6 +42,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.trigit.TrigIt;
+import org.trigit.TrigItMethod;
+
 /**
  * <p>
  * UIBean is the standard superclass of all Struts UI components.
@@ -851,28 +854,38 @@ public abstract class UIBean extends Component {
             }
 
             //TODO: this is to keep backward compatibility, remove once when tooltipConfig is dropped
-            String  jsTooltipEnabled = (String) getParameters().get("jsTooltipEnabled");
-            if (jsTooltipEnabled != null)
-                this.javascriptTooltip = jsTooltipEnabled;
+            if (!trigItTooltipConfigDropped()) {
+                String  jsTooltipEnabled = (String) getParameters().get("jsTooltipEnabled");
+                if (jsTooltipEnabled != null)
+                    this.javascriptTooltip = jsTooltipEnabled;
+            }
 
             //TODO: this is to keep backward compatibility, remove once when tooltipConfig is dropped
-            String tooltipIcon = (String) getParameters().get("tooltipIcon");
-            if (tooltipIcon != null)
-                this.addParameter("tooltipIconPath", tooltipIcon);
-            if (this.tooltipIconPath != null)
-                this.addParameter("tooltipIconPath", findString(this.tooltipIconPath));
+            if (!trigItTooltipConfigDropped()) {
+                String tooltipIcon = (String) getParameters().get("tooltipIcon");
+                if (tooltipIcon != null)
+                    this.addParameter("tooltipIconPath", tooltipIcon);
+                if (this.tooltipIconPath != null)
+                    this.addParameter("tooltipIconPath", findString(this.tooltipIconPath));
+            }
 
             //TODO: this is to keep backward compatibility, remove once when tooltipConfig is dropped
-            String tooltipDelayParam = (String) getParameters().get("tooltipDelay");
-            if (tooltipDelayParam != null)
-                this.addParameter("tooltipDelay", tooltipDelayParam);
-            if (this.tooltipDelay != null)
-                this.addParameter("tooltipDelay", findString(this.tooltipDelay));
+            if (!trigItTooltipConfigDropped()) {
+                String tooltipDelayParam = (String) getParameters().get("tooltipDelay");
+                if (tooltipDelayParam != null)
+                    this.addParameter("tooltipDelay", tooltipDelayParam);
+                if (this.tooltipDelay != null)
+                    this.addParameter("tooltipDelay", findString(this.tooltipDelay));
+            }
 
             if (this.javascriptTooltip != null) {
                 Boolean jsTooltips = (Boolean) findValue(this.javascriptTooltip, Boolean.class);
                 //TODO use a Boolean model when tooltipConfig is dropped
-                this.addParameter("jsTooltipEnabled", jsTooltips.toString());
+                if (trigItTooltipConfigDropped()) {
+                    TrigIt.reminder("use a Boolean model");
+                } else {
+                    this.addParameter("jsTooltipEnabled", jsTooltips.toString());
+                }
 
                 if (form != null)
                     form.addParameter("hasTooltip", jsTooltips);
@@ -882,6 +895,11 @@ public abstract class UIBean extends Component {
         }
 
         evaluateExtraParams();
+    }
+
+    @TrigItMethod
+    boolean trigItTooltipConfigDropped() {
+        return !TrigIt.getCurrentClass().hasField("tooltipConfig");
     }
 
     protected String escape(String name) {
